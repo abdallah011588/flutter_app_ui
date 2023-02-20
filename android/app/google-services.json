@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "146849411518",
+    "project_id": "barter-it-c5ceb",
+    "storage_bucket": "barter-it-c5ceb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146849411518:android:d3b50a20e42c089f5b89ef",
+        "android_client_info": {
+          "package_name": "com.example.barter_it"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "146849411518-0rsivm39hhmsf5m29p485s1ui2pkl1jb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.barter_it",
+            "certificate_hash": "592c8fb48e97605607eb643f0c3d14826bcf2714"
+          }
+        },
+        {
+          "client_id": "146849411518-c0b4ia0ko6o3n542fiv97d1i7m3f8a40.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfzmChqaclbZq4Ftec6OB6zhOLsmQW2pQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "146849411518-c0b4ia0ko6o3n542fiv97d1i7m3f8a40.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
