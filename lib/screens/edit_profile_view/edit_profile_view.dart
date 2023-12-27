@@ -1,7 +1,11 @@
 
+import 'dart:io';
+
 import 'package:barter_it/components/components.dart';
+import 'package:barter_it/constants/constants.dart';
 import 'package:barter_it/layout/cubit/cubit.dart';
 import 'package:barter_it/layout/cubit/states.dart';
+import 'package:barter_it/localization/localization_methods.dart';
 import 'package:barter_it/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,15 +24,15 @@ class _EditProfileViewState extends State<EditProfileView> {
   TextEditingController? nameController;
   TextEditingController? phoneController;
   TextEditingController? ageController;
+  File? imageFile;
+
   var formKey=GlobalKey<FormState>();
 
    @override
    void initState() {
-
       nameController=TextEditingController(text: AppCubit.get(context).userData!.name!);
       phoneController=TextEditingController(text: AppCubit.get(context).userData!.phone!);
       ageController=TextEditingController(text: AppCubit.get(context).userData!.age!.toString());
-
      super.initState();
    }
 
@@ -40,13 +44,26 @@ class _EditProfileViewState extends State<EditProfileView> {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            title: Text('Edit profile'),
-            foregroundColor: Colors.white,
-            backgroundColor:AppColors.buttonColor,
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: AppColors.buttonColor,
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.light,
+            title: Text(translate(context,'Edit profile')!),
+            toolbarHeight: 80,
+            leadingWidth: 70,
+            leading: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: AppColors.drawerColor,blurRadius: 10,),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back),
+                ),
+              ),
             ),
           ),
           body: Padding(
@@ -62,7 +79,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                       children: [
                         AppCubit.get(context).userData!.image== null
                             && AppCubit.get(context).userData!.image== ""
-                            && AppCubit.get(context).profileImage == null ?
+                            && imageFile == null ?
                         CircleAvatar(
                           radius: 120,
                           backgroundColor: Colors.black,
@@ -70,13 +87,15 @@ class _EditProfileViewState extends State<EditProfileView> {
                         CircleAvatar(
                           radius: 120,
                           backgroundImage:
-                          AppCubit.get(context).profileImage != null?
-                          FileImage(AppCubit.get(context).profileImage!)
+                          imageFile != null?
+                          FileImage(imageFile!)
                               :NetworkImage(AppCubit.get(context).userData!.image!) as ImageProvider,
                         ),
                         IconButton(
                           onPressed: (){
-                            AppCubit.get(context).pickProfileImage();
+                            AppCubit.get(context).pickProfileImage().then((value) {
+                              imageFile = AppCubit.get(context).profileImage;
+                            });
                           },
                           icon: Icon(Icons.camera_alt,color: AppColors.buttonColor,size: 30,),
                         ),
@@ -98,7 +117,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           padding: const EdgeInsets.only(top: 15.0,),
                           child: TextFormField(
                             decoration: InputDecoration(
-                              labelText: 'Name',
+                              labelText: translate(context,'Name')!,
                               labelStyle:const TextStyle(height: 2,color: AppColors.buttonColor,fontSize: 20,),
                               prefixIcon: Icon(Icons.person,color: AppColors.buttonColor,),
                               focusColor: Colors.white,
@@ -112,7 +131,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                             validator: (value){
                               if(value!.isEmpty)
                               {
-                                return "can't be empty!";
+                                return translate(context,"can't be empty!")!;
                               }
                               return null;
                             },
@@ -137,24 +156,21 @@ class _EditProfileViewState extends State<EditProfileView> {
                           padding: const EdgeInsets.only(top: 15.0,bottom: 0),
                           child: IntlPhoneField(
                             decoration: InputDecoration(
-                              labelText: 'Phone Number',
-                              labelStyle:const TextStyle(height: 1,color: AppColors.buttonColor,fontSize: 20,),
+                              isDense: false,
+                              labelText: translate(context,'Phone Number')!,
+                              labelStyle:const TextStyle(height: 1,color: AppColors.buttonColor,fontSize: 18,),
                               focusColor: Colors.white,
                               enabledBorder:editBorder ,
                               disabledBorder: editBorder,
                               focusedBorder: editBorder,
                               errorBorder: editBorder,
                               focusedErrorBorder:editBorder,
+                              counterText: "",
                             ),
-                            onChanged: (phone) {
-                              //  print(phone.completeNumber);
-                            },
-                            onCountryChanged: (country) {
-                              //print('Country changed to: ' + country.name);
-                            },
                             controller: phoneController,
                             autovalidateMode: AutovalidateMode.onUserInteraction,
                             disableLengthCheck: false,
+                            textAlign: LANG=="ar"? TextAlign.start:TextAlign.start,
                             initialCountryCode: 'EG',
                           ),
                         ),
@@ -184,18 +200,18 @@ class _EditProfileViewState extends State<EditProfileView> {
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Gender',
-                                      style: const TextStyle(color: AppColors.buttonColor,fontSize: 16,),
+                                    Text(translate(context,'Gender')!,
+                                      style: const TextStyle(height:1.5,color: AppColors.buttonColor,fontSize: 15,),
                                     ),
                                     DropdownButton(
+
                                         underline: SizedBox(),
-                                        value: AppCubit.get(context).gender,
+                                        value:AppCubit.get(context).userData!.gender!,
                                         isExpanded: true,
                                         items: [
-                                          DropdownMenuItem<String>(child:Text('Male'),value: 'Male', ),
-                                          DropdownMenuItem<String>(child:Text('Female'), value: 'Female',),
-                                          DropdownMenuItem<String>(child:Text('None'), value: 'None',),
+                                          DropdownMenuItem<String>(child:Text(translate(context,'Male')!),value: 'Male', ),
+                                          DropdownMenuItem<String>(child:Text(translate(context,'Female')!), value: 'Female',),
+                                          DropdownMenuItem<String>(child:Text(translate(context,'None')!), value: 'None',),
                                         ],
                                         onChanged: (value){
                                           AppCubit.get(context).changeGender(value.toString());
@@ -225,7 +241,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           padding: const EdgeInsets.only(top: 15.0,bottom: 0),
                           child: TextFormField(
                             decoration: InputDecoration(
-                              labelText: 'Age',
+                              labelText: translate(context,'Age')!,
                               labelStyle:const TextStyle(height: 2,color: AppColors.buttonColor,fontSize: 20,),
                               prefixIcon: Icon(Icons.person_pin_rounded,color: AppColors.buttonColor,),
                               focusColor: Colors.white,
@@ -239,7 +255,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                             validator: (value){
                               if(value!.isEmpty)
                               {
-                                return "can't be empty!";
+                                return translate(context,"can't be empty!")!;
                               }
                               return null;
                             },
@@ -249,7 +265,8 @@ class _EditProfileViewState extends State<EditProfileView> {
                       ),
                     ),
 
-                    state is! UploadProfileImageLoadingState && state is! UpdateUserLoadingState ? Padding(
+                    state is! UploadProfileImageLoadingState && state is! UpdateUserLoadingState ?
+                    Padding(
                       padding: const EdgeInsets.all(5.0),
                       child: Container(
                         decoration: BoxDecoration(
@@ -271,20 +288,19 @@ class _EditProfileViewState extends State<EditProfileView> {
                                   name: nameController!.text,
                                   phone: phoneController!.text,
                                   gender: AppCubit.get(context).gender,
-                                  age: int.parse(ageController!.text),)
-
-                                    :AppCubit.get(context).updateImageProfile(
+                                  age: int.parse(ageController!.text),
+                                  context: context,) :
+                                AppCubit.get(context).updateImageProfile(
                                   name: nameController!.text,
                                   phone: phoneController!.text,
                                   gender: AppCubit.get(context).gender,
                                   age: int.parse(ageController!.text),
+                                  context: context,
                                 ) ;
                               }
 
                             },
-
-                            child:const Text(
-                              'Save Changes',
+                            child: Text(translate(context,'Save Changes')!,
                               style: TextStyle(fontSize: 16,fontWeight: FontWeight.w500,color: Colors.white),
                             ),
                           ),
@@ -315,5 +331,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     nameController?.dispose();
     phoneController?.dispose();
     ageController?.dispose();
+    imageFile = null;
+
   }
+
 }

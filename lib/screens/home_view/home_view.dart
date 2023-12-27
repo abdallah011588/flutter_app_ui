@@ -1,25 +1,31 @@
 
+import 'package:barter_it/components/components.dart';
+import 'package:barter_it/components/widgets/category_item_builder.dart';
+import 'package:barter_it/components/widgets/item_builder.dart';
+import 'package:barter_it/constants/constants.dart';
+import 'package:barter_it/layout/cubit/cubit.dart';
+import 'package:barter_it/layout/cubit/states.dart';
+import 'package:barter_it/localization/localization_methods.dart';
 import 'package:barter_it/resources/colors.dart';
 import 'package:barter_it/screens/categories_screen/categories_view.dart';
-import 'package:barter_it/screens/item_details_screen/item-details_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 class HomeView extends StatelessWidget {
-  const HomeView({Key? key}) : super(key: key);
+  HomeView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocConsumer<AppCubit,AppStates>(builder: (context, state) => Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: NotificationListener<OverscrollIndicatorNotification>(
+        child: ListView(
           children: [
-            Text(
-              'Welcome back ,Abdo',
-              style: TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-            ),
+            if(AppCubit.get(context).userData !=null)
+             Text("${translate(context,"Welcome back")!} ,${AppCubit.get(context).userData!.name!.split(" ")[0]}",
+              style:  TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Center(
               child: Padding(
@@ -27,7 +33,7 @@ class HomeView extends StatelessWidget {
                 child: InkWell(
                   borderRadius:BorderRadius.circular(25),
                   onTap: (){
-                    print('search');
+                    showSearch(context: context, delegate: SearchView(searchProducts: AppCubit.get(context).allProducts));
                   },
                   child: Container(
                     height: 50,
@@ -37,13 +43,12 @@ class HomeView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(25),
                     ),
                     child: Row(
-                      children: [
+                      children:  [
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Icon(Icons.search),
+                          padding:  EdgeInsets.all(8.0),
+                          child:  Icon(Icons.search),
                         ),
-                        Text(
-                          'Search on BarterIt',
+                        Text(translate(context,'Search on BarterIt')!,
                           style: TextStyle(
                             fontSize: 15,
                           ),
@@ -58,166 +63,68 @@ class HomeView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children:[
-                Text(
-                  'Categories',
-                  style: TextStyle(
-                    fontSize: 20,
+                 Text(translate(context,'Categories')!,
+                  style:  TextStyle(
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextButton(
-                    onPressed: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => CategoriesScreen(),));
-                    },
-                    child: Text(
-                      'See All',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: AppColors.buttonColor,
-                      ),
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) =>  CategoriesScreen(),));
+                  },
+                  child:  Text(translate(context,'See All')!,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: AppColors.buttonColor,
                     ),
+                  ),
                 )
               ],
             ),
             Container(
-              height: 110,
+              height: 120,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemBuilder: (context, index) => categoryBuilder(AppColors.bottomNavColor),
+                itemBuilder: (context, index) => InkWell(
+                  onTap: (){
+                    AppCubit.get(context).getSpecificProducts(myCategories[index], index.toString(), context);
+                  },
+                  child: CategoryBuilder(category:myCategories[index],categoryImage: categoryImage[index]),
+                ),
                 itemCount: 6,
                 scrollDirection: Axis.horizontal,
               ),
             ),
-            SizedBox(height: 10,),
-            Container(
-              child: GridView.builder(
-                  shrinkWrap: true,physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 2,
-                    mainAxisSpacing: 2,
-                    childAspectRatio: 3/4,
-                  ),
-                itemBuilder:(context , index)=>itemBuilder(context) ,
-                itemCount: 10,
+            const SizedBox(height: 15,),
+             Text(translate(context,"Recommended for you")!,
+              style:  TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            const SizedBox(height: 15,),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 2,
+                mainAxisSpacing: 2,
+                childAspectRatio: 3/4,
+              ),
+              itemBuilder:(context , index)=>
+              AppCubit.get(context).allProducts.isEmpty?
+              CircularProgressIndicator(): ItemBuilder(context:context,product: AppCubit.get(context).allProducts[index]) ,
+              itemCount: AppCubit.get(context).allProducts.length,
             )
           ],
         ),
+        onNotification: (scroll){
+          scroll.disallowIndicator();
+          return true;
+        },
       ),
-    );
+    ), listener: (context, state) {});
   }
-}
-
-
-Widget categoryBuilder(Color color)
-{
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: color,
-            blurRadius: 5,
-           // spreadRadius: 3.0,
-          ),
-        ],
-      ),
-      height: 100,
-      width: 100,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.image),
-          Text('Item'),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget itemBuilder(context)
-{
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: InkWell(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ItemDetailsScreen(),));
-        print('details');
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey,
-              blurRadius: 8,
-              // spreadRadius: 3.0,
-            ),
-          ],
-        ),
-      //  height: 250,
-       // width: 150,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(topRight: Radius.circular(15),topLeft:  Radius.circular(15)),
-                  child: Image.asset(
-                      'assets/images/item.jpg',
-                    fit: BoxFit.cover,
-                  ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Text(
-                "\$50,000",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 5.0),
-              child: Text(
-                'Hyundai plug',
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: TextStyle(
-                  color: AppColors.buttonColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.location_on,size: 15,),
-                  Expanded(
-                    child: Text(
-                      'Egypt ,cairo,street 12',
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

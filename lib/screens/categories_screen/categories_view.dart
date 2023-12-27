@@ -1,9 +1,14 @@
 
+import 'package:barter_it/components/widgets/category_item_builder.dart';
+import 'package:barter_it/constants/constants.dart';
+import 'package:barter_it/layout/cubit/cubit.dart';
+import 'package:barter_it/localization/localization_methods.dart';
 import 'package:barter_it/resources/colors.dart';
-import 'package:barter_it/screens/home_view/home_view.dart';
+import 'package:barter_it/screens/add_item_screen/add_item_view.dart';
 import 'package:flutter/material.dart';
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({Key? key}) : super(key: key);
+   CategoriesScreen({Key? key}) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +40,7 @@ class CategoriesScreen extends StatelessWidget {
           padding: const EdgeInsets.all(0.0),
           child: InkWell(
             borderRadius:BorderRadius.circular(25),
-            onTap: (){
-              print('search');
-            },
+            onTap: (){},
             child: Container(
               height: 40,
               // width: double.infinity,
@@ -51,8 +54,7 @@ class CategoriesScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Icon(Icons.search),
                   ),
-                  Text(
-                    'Search on BarterIt',
+                  Text(translate(context,'Search on BarterIt')!,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.normal
@@ -79,6 +81,7 @@ class CategoriesScreen extends StatelessWidget {
               ),
               child: IconButton(
                 onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => AddNewItemView(),));
                 },
                 icon: Icon(Icons.add_box_rounded),
               ),
@@ -91,32 +94,30 @@ class CategoriesScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Find items to barter',
-              style: TextStyle(
-                fontSize: 25,
-
-              ),
+            Text(translate(context,'Find items to barter')!,
+              style: TextStyle(fontSize: 25,),
             ),
             SizedBox(height: 10,),
             Expanded(
               child: SingleChildScrollView(
-                child: Container(
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 1,
-                      mainAxisSpacing: 1,
-                      childAspectRatio:1,
-                    ),
-                    itemBuilder:(context , index)=>categoryBuilder(Colors.grey) ,
-                    itemCount: 18,
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 1,
+                    mainAxisSpacing: 1,
+                    childAspectRatio:1,
                   ),
+                  itemBuilder:(context , index)=> InkWell(
+                      onTap: (){
+                        AppCubit.get(context).getSpecificProducts(myCategories[index], index.toString(), context);
+                        },
+                      child: CategoryBuilder(category:myCategories[index],categoryImage: categoryImage[index])) ,
+                     itemCount: myCategories.length,
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

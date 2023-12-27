@@ -1,33 +1,65 @@
-import 'package:barter_it/components/components.dart';
+import 'package:barter_it/components/widgets/profile_item.dart';
 import 'package:barter_it/layout/cubit/cubit.dart';
+import 'package:barter_it/layout/cubit/states.dart';
+import 'package:barter_it/localization/localization_methods.dart';
 import 'package:barter_it/resources/colors.dart';
+import 'package:barter_it/screens/address/add_address.dart';
+import 'package:barter_it/screens/address/view_address.dart';
 import 'package:barter_it/screens/edit_profile_view/edit_profile_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileView extends StatelessWidget {
   ProfileView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
+    return BlocConsumer<AppCubit,AppStates>(builder: (context, state) => Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: NotificationListener<OverscrollIndicatorNotification>(
+        child:AppCubit.get(context).userData !=null?
+        ListView(
           children: [
-            AppCubit.get(context).userData!.image==null ||AppCubit.get(context).userData!.image==null?
-            Container(
-              height: 180,
-              width: double.infinity,
-              child: Center(
-                child: Text('No image'),
-              ),
-            )
-            :Container(
-              height: 350,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                  child:FadeInImage(placeholder: AssetImage('assets/images/shop2.jpg'), image: NetworkImage(AppCubit.get(context).userData!.image!)),// Image.network(AppCubit.get(context).userData!.image!,fit: BoxFit.cover,),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                AppCubit.get(context).userData!.image!,
+                fit: BoxFit.cover,
+                height: 300,
+                width: double.infinity,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return  Container(
+                      height: 300,
+                      width: double.infinity,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes! : null,
+                              strokeWidth: 5,
+                            ),
+                            SizedBox(height: 10,),
+                            Text(translate(context, 'Loading...')!,style: TextStyle(color: AppColors.black,fontSize: 16,fontWeight: FontWeight.bold),)
+                          ],
+                        ),
+                      )
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 300,
+                  width: double.infinity,
+                  child: Center(
+                    child: Text(translate(context, "Some errors occurred! \n Can't load the image ")!,
+                      style: TextStyle(color: AppColors.black,fontSize: 18,fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
               ),
             ),
             Align(
@@ -46,34 +78,29 @@ class ProfileView extends StatelessWidget {
                 ),
               ),
             ),
-            profileItems('Name', AppCubit.get(context).userData!.name!,Icon(
-              Icons.person,
-              color: AppColors.buttonColor,
-            )),
-            profileItems('Gender', AppCubit.get(context).userData!.gender!,Icon(
-              Icons.person_outline_outlined,
-              color: AppColors.buttonColor,
-            )),
-            profileItems('Phone Number', AppCubit.get(context).userData!.phone!,Icon(
-              Icons.phone,
-              color: AppColors.buttonColor,
-            )),
-            profileItems('Email', AppCubit.get(context).userData!.email!,Icon(
-              Icons.email,
-              color: AppColors.buttonColor,
-            )),
-            profileItems('Age', AppCubit.get(context).userData!.age!.toString(),Icon(
-              Icons.calendar_month,
-              color: AppColors.buttonColor,
-            )),
-            profileItems('Location', AppCubit.get(context).userData!.location!,Icon(
-              Icons.location_on,
-              color: AppColors.buttonColor,
-            )),
+            ProfileItem(name: translate(context, 'Name')!,value: AppCubit.get(context).userData!.name!,icon: Icons.person),
+            ProfileItem(name: translate(context, 'Gender')!, value: translate(context,AppCubit.get(context).userData!.gender!)!,icon: Icons.person_outline_outlined),
+            ProfileItem(name: translate(context, 'Phone Number')!, value: AppCubit.get(context).userData!.phone!,icon: Icons.phone),
+            ProfileItem(name: translate(context, 'Email')!, value: AppCubit.get(context).userData!.email!,icon: Icons.email),
+            ProfileItem(name: translate(context, 'Age')!, value: AppCubit.get(context).userData!.age!.toString(),icon: Icons.calendar_month),
+            InkWell(
+              onTap: (){
+                if(AppCubit.get(context).userData!.location!.addressName == "initialLocation")
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => AddAddress(),));
+                else
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewAddress(userModel: AppCubit.get(context).userData!,),));
+              },
+              child: ProfileItem(name: translate(context, 'Location')!,value:  AppCubit.get(context).userData!.location!.addressName!,icon: Icons.location_on),
+            ),
           ],
-        ),
+        ):SizedBox(),
+        onNotification: (scroll)
+        {
+          scroll.disallowIndicator();
+          return true;
+        },
       ),
-    );
+    ), listener: (context, state){});
   }
 }
 
